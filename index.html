@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORDER NOTE ― 願いをオーダーするノート</title>
+<style>
+  :root {
+    --bg: #faf3e7;
+    --bg-soft: #fdf8ee;
+    --card: #fffaf3;
+    --card-shadow: 0 4px 16px rgba(180, 140, 100, 0.08);
+    --primary: #e9a08a;
+    --primary-dark: #d88670;
+    --gold: #c89968;
+    --pink: #f5d8d0;
+    --sage: #94b388;
+    --text: #5d4e37;
+    --text-soft: #8a7860;
+    --text-muted: #b3a08a;
+    --border: #ead9bf;
+    --border-soft: #f0e4cf;
+    --star: #e8b04a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic Pro", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(245, 216, 208, 0.4) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(232, 176, 74, 0.15) 0%, transparent 40%);
+    background-attachment: fixed;
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    padding: 28px 16px 12px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: 0.15em;
+    color: var(--primary-dark);
+    font-weight: 600;
+  }
+
+  header .sub {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px 20px;
+    position: sticky;
+    top: 0;
+    background: rgba(250, 243, 231, 0.92);
+    backdrop-filter: blur(6px);
+    z-index: 10;
+  }
+
+  nav button {
+    background: transparent;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  nav button:hover {
+    background: var(--bg-soft);
+    color: var(--primary-dark);
+  }
+
+  nav button.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(232, 160, 138, 0.4);
+  }
+
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 14px;
+    border: 1px solid var(--border-soft);
+  }
+
+  .card.clickable {
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(180, 140, 100, 0.14);
+  }
+
+  h2 {
+    font-size: 18px;
+    margin: 24px 0 12px;
+    color: var(--primary-dark);
+    letter-spacing: 0.05em;
+  }
+
+  h3 { font-size: 16px; margin: 0 0 8px; color: var(--text); }
+
+  /* Dashboard */
+  .hero {
+    text-align: center;
+    background: linear-gradient(180deg, #fff3df 0%, #fdebd5 60%, #f5d8d0 100%);
+    border-radius: 22px;
+    padding: 18px 20px 26px;
+    margin-bottom: 18px;
+    border: 1px solid var(--border-soft);
+    position: relative;
+    overflow: hidden;
+  }
+  .tree-art {
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
+    display: block;
+    filter: drop-shadow(0 4px 6px rgba(120, 80, 50, 0.08));
+  }
+  .tree-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: opacity 0.5s ease;
+  }
+  .tree-stage {
+    font-size: 13px;
+    color: var(--text-soft);
+    letter-spacing: 0.15em;
+    margin: 4px 0 0;
+    font-weight: 500;
+  }
+  .stage-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 4px 0 10px;
+  }
+  .next-stage {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 6px 0 14px;
+    letter-spacing: 0.04em;
+  }
+  .next-stage .bar {
+    height: 5px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 5px auto 0;
+    max-width: 200px;
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+  .next-stage .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--gold));
+    border-radius: 999px;
+    transition: width 0.8s ease;
+  }
+  .hero .num {
+    font-size: 48px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    margin-top: 2px;
+  }
+  .hero .label {
+    margin-top: 4px;
+    color: var(--text-soft);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+  .hero .msg {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+  /* sparkle animation for fulfillment */
+  @keyframes sparkleFloat {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    30% { opacity: 1; transform: translateY(-10px) scale(1); }
+    100% { opacity: 0; transform: translateY(-30px) scale(0.7); }
+  }
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 18px;
+    animation: sparkleFloat 1.8s ease-out forwards;
+  }
+  @keyframes treeBreath {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.012); }
+  }
+  .tree-art { transform-origin: bottom center; }
+  @media (prefers-reduced-motion: no-preference) {
+    .tree-art { animation: treeBreath 6s ease-in-out infinite; }
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .stat {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px 8px;
+    text-align: center;
+    border: 1px solid var(--border-soft);
+  }
+  .stat .v { font-size: 24px; font-weight: 600; color: var(--gold); }
+  .stat .l { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .quote {
+    background: var(--bg-soft);
+    border-left: 3px solid var(--primary);
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 14px 0;
+    line-height: 1.9;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 2px 6px rgba(232, 160, 138, 0.3);
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:active { transform: scale(0.97); }
+  .btn.ghost {
+    background: transparent;
+    color: var(--primary-dark);
+    border: 1.5px solid var(--primary);
+    box-shadow: none;
+  }
+  .btn.ghost:hover { background: var(--pink); }
+  .btn.gold {
+    background: var(--gold);
+    box-shadow: 0 2px 6px rgba(200, 153, 104, 0.3);
+  }
+  .btn.gold:hover { background: #b08456; }
+  .btn.sage { background: var(--sage); box-shadow: 0 2px 6px rgba(148, 179, 136, 0.3); }
+  .btn.sage:hover { background: #7a9870; }
+  .btn.small { padding: 6px 14px; font-size: 12px; }
+  .btn.danger { background: transparent; color: #b86c5a; border: 1px solid #e0baaf; box-shadow: none; }
+  .btn.danger:hover { background: #fbece7; }
+
+  .fab {
+    position: fixed;
+    right: 20px;
+    bottom: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-size: 30px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(232, 160, 138, 0.5);
+    z-index: 5;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .fab:hover { background: var(--primary-dark); transform: scale(1.05); }
+
+  /* Forms */
+  label { display: block; font-size: 12px; color: var(--text-soft); margin: 14px 0 6px; letter-spacing: 0.05em; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    background: var(--bg-soft);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    resize: vertical;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+  }
+  textarea { min-height: 80px; }
+
+  /* Image upload */
+  .images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .img-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .img-thumb.large { width: 100%; height: auto; max-height: 280px; }
+  .img-add {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    border: 2px dashed var(--border);
+    background: var(--bg-soft);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+  }
+  .img-add:hover { border-color: var(--primary); color: var(--primary); }
+
+  .img-wrap { position: relative; }
+  .img-del {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: white;
+    border: 1px solid var(--border);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+  }
+
+  /* Order item */
+  .order-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .order-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--pink);
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+  .order-thumb.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--primary-dark);
+  }
+  .order-body { flex: 1; min-width: 0; }
+  .order-title { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+  .order-desc {
+    font-size: 12px;
+    color: var(--text-soft);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.6;
+  }
+  .order-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-soft);
+    font-size: 11px;
+    color: var(--text-soft);
+  }
+  .badge.fulfilled { background: #e8f3e2; border-color: #c5dbb8; color: #607c54; }
+
+  /* Detail page */
+  .back {
+    background: none;
+    border: none;
+    color: var(--text-soft);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 8px 0;
+    font-family: inherit;
+  }
+  .back:hover { color: var(--primary-dark); }
+
+  .detail-title { font-size: 22px; margin: 8px 0 4px; color: var(--text); }
+  .detail-date { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+
+  .detail-section {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-soft);
+  }
+
+  .timeline-item {
+    border-left: 2px solid var(--pink);
+    padding: 0 0 16px 14px;
+    margin-left: 4px;
+    position: relative;
+    font-size: 13px;
+  }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary);
+  }
+  .timeline-item:last-child { padding-bottom: 0; border-left-color: transparent; }
+  .timeline-date { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .timeline-content { white-space: pre-wrap; }
+
+  .empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .empty .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.6; }
+
+  /* Gratitude blog */
+  .blog-card {
+    background: var(--card);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--card-shadow);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .blog-card:hover { transform: translateY(-2px); }
+  .blog-hero {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #fdebd5, #f5d8d0);
+  }
+  .blog-body { padding: 16px 18px; }
+  .blog-title { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+  .blog-snippet {
+    font-size: 12px;
+    color: var(--text-soft);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .blog-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+  /* Tips page */
+  .tip {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--gold);
+    box-shadow: var(--card-shadow);
+  }
+  .tip h3 { color: var(--gold); margin-bottom: 8px; font-size: 15px; }
+  .tip p { margin: 0; font-size: 13px; line-height: 1.9; color: var(--text); }
+
+  /* Modal (lightbox) */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(50, 35, 20, 0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal.show { display: flex; }
+  .modal img { max-width: 100%; max-height: 90vh; border-radius: 8px; }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    header h1 { font-size: 22px; }
+    .hero .num { font-size: 52px; }
+    nav button { padding: 6px 12px; font-size: 12px; }
+  }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row.between { justify-content: space-between; }
+  .spacer { height: 16px; }
+  .hr { height: 1px; background: var(--border-soft); margin: 16px 0; border: none; }
+  .note {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 6px;
+  }
+  .sense-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .sense-tag {
+    font-size: 11px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-soft);
+    color: var(--text-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .sense-tag:hover { background: var(--pink); color: var(--primary-dark); }
+
+  .fulfilled-mark {
+    display: inline-block;
+    font-size: 11px;
+    background: var(--sage);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✧ ORDER NOTE ✧</h1>
+  <p class="sub">願いを宇宙にオーダーするノート</p>
+</header>
+
+<nav>
+  <button data-tab="home" class="active">ホーム</button>
+  <button data-tab="orders">オーダー</button>
+  <button data-tab="fulfilled">叶ったオーダー</button>
+  <button data-tab="gratitude">ありがとうノート</button>
+  <button data-tab="tips">引き寄せのコツ</button>
+</nav>
+
+<main>
+  <!-- ホーム -->
+  <section id="page-home" class="page active">
+    <div class="hero" id="hero">
+      <div class="tree-art" id="treeArt"></div>
+      <div class="tree-stage" id="treeStageLabel">🌰 種</div>
+      <div class="stage-desc" id="stageDesc">これから、あなたの木がここで育ちます</div>
+      <div class="num" id="fulfilledCount">0</div>
+      <div class="label">これまでに叶ったオーダー</div>
+      <div class="next-stage" id="nextStage"></div>
+      <div class="msg" id="heroMsg">わたしには叶える力がある。<br>宇宙は、いつもわたしの味方。</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v" id="activeCount">0</div><div class="l">オーダー中</div></div>
+      <div class="stat"><div class="v" id="gratitudeCount">0</div><div class="l">ありがとう</div></div>
+      <div class="stat"><div class="v" id="streakDays">0</div><div class="l">記録日数</div></div>
+    </div>
+
+    <div class="quote" id="dailyQuote">
+      今この瞬間の「いい気分」が、未来をつくる。<br>どうせ叶うから、わくわくしながら待っていよう ☕
+    </div>
+
+    <h2>最近のオーダー</h2>
+    <div id="recentOrders"></div>
+
+    <h2>最近の「ありがとう」</h2>
+    <div id="recentGratitude"></div>
+  </section>
+
+  <!-- オーダー一覧 -->
+  <section id="page-orders" class="page">
+    <div class="row between">
+      <h2 style="margin:18px 0 6px;">オーダー中</h2>
+      <button class="btn small" onclick="openNewOrder()">＋ 新しいオーダー</button>
+    </div>
+    <p class="note">ざっくりでOK。気が向いた時にだけ書き足していこう。</p>
+    <div id="orderList"></div>
+  </section>
+
+  <!-- 叶ったオーダー -->
+  <section id="page-fulfilled" class="page">
+    <h2>叶ったオーダー</h2>
+    <p class="note">「わたしには叶える力がある」を、脳に染み込ませる場所。</p>
+    <div id="fulfilledList"></div>
+  </section>
+
+  <!-- ありがとうノート -->
+  <section id="page-gratitude" class="page">
+    <div class="row between">
+      <h2 style="margin:18px 0 6px;">ありがとうノート</h2>
+      <button class="btn small gold" onclick="openNewGratitude()">＋ 書く</button>
+    </div>
+    <p class="note">心が動いた瞬間を、写真と文章で残しておこう。</p>
+    <div id="gratitudeList"></div>
+  </section>
+
+  <!-- 引き寄せのコツ -->
+  <section id="page-tips" class="page">
+    <h2>引き寄せの法則 — 5つの心得</h2>
+    <p class="note">ちょっと迷ったら、ここに戻ってこよう。</p>
+
+    <div class="tip">
+      <h3>① いい気分でいることを最優先に</h3>
+      <p>願いを叶える一番の近道は、今この瞬間「いい気分」でいること。執着や不満は、せっかくのオーダーをブロックしてしまう。「叶ったらいいな」じゃなく「どうせ叶う」スタンスで、軽やかに。</p>
+    </div>
+
+    <div class="tip">
+      <h3>② タイムラグを楽しむ</h3>
+      <p>オーダーしてから現実化するまでには、必要なタイミングがある。「まだ来ない」と焦らず、「どんな形で来るかな〜」と楽しみに待つ。待っている間も、いい気分で。</p>
+    </div>
+
+    <div class="tip">
+      <h3>③ 五感まで落とし込む</h3>
+      <p>叶った時の景色・匂い・温かさ・音・心地よさを、リアルに感じてみる。脳は「現実」と「ありありとイメージしたこと」を区別できない。SNSや街で「これだ！」を見つけたら気軽に書き足そう。</p>
+    </div>
+
+    <div class="tip">
+      <h3>④ 「どうやって」は手放す</h3>
+      <p>叶え方は宇宙にお任せ。今の小さな物差しで「無理かも」と決めつけない。すでに叶えている人を観察したり、自分の脳みそ以外からヒントを集めるのはOK。</p>
+    </div>
+
+    <div class="tip">
+      <h3>⑤ 「ありがとう」を増やす</h3>
+      <p>感謝は最強の周波数。すでに持っているもの・出会えた人に「ありがとう」を向けると、同じ波動のものが引き寄せられてくる。ありがとうノートを開いて、心を温めて。</p>
+    </div>
+
+    <div class="quote" style="margin-top:24px;">
+      このアプリを「書かなきゃ」と思ったら、閉じてOK。<br>
+      久しぶりに開いて「わくわくするな〜」と思えるくらいが、ちょうどいい。
+    </div>
+  </section>
+
+  <!-- オーダー新規・編集 -->
+  <section id="page-orderEdit" class="page">
+    <button class="back" onclick="goBack()">← もどる</button>
+    <h2 id="orderEditTitle">新しいオーダー</h2>
+
+    <div class="card">
+      <label>タイトル（ざっくりでOK）</label>
+      <input type="text" id="orderTitle" placeholder="例：心からわくわくする毎日を送る">
+
+      <label>願いの中身</label>
+      <textarea id="orderDesc" placeholder="まずはざっくりで大丈夫。あとから書き足していけます。"></textarea>
+
+      <label>イメージ画像（複数OK）</label>
+      <div class="images" id="orderImages"></div>
+      <input type="file" id="orderImageInput" accept="image/*" multiple style="display:none">
+
+      <p class="note">SNSやネットで「これだ！」と思った画像を集めると、イメージが鮮明に。</p>
+
+      <hr class="hr">
+      <label>五感メモ（書ける時だけでOK）</label>
+      <textarea id="orderSenses" placeholder="どんな匂い？どんな温かさ？どんな音？どんな心地よさ？" rows="3"></textarea>
+      <div class="sense-tags">
+        <span class="sense-tag" onclick="addSense('☀️ 朝の光の中で')">☀️ 朝の光</span>
+        <span class="sense-tag" onclick="addSense('☕ 温かい飲み物の香り')">☕ 香り</span>
+        <span class="sense-tag" onclick="addSense('😊 まわりの笑顔')">😊 笑顔</span>
+        <span class="sense-tag" onclick="addSense('🌊 心地よい風')">🌊 風</span>
+        <span class="sense-tag" onclick="addSense('💛 胸の奥が温かい')">💛 温かさ</span>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="row">
+        <button class="btn" onclick="saveOrder()">保存する</button>
+        <button class="btn ghost" onclick="goBack()">キャンセル</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- オーダー詳細 -->
+  <section id="page-orderDetail" class="page">
+    <button class="back" onclick="goBack()">← もどる</button>
+    <h1 class="detail-title" id="detailTitle"></h1>
+    <div class="detail-date" id="detailDate"></div>
+
+    <div class="detail-section">
+      <h3>願いの中身</h3>
+      <div id="detailDesc" style="white-space:pre-wrap; font-size:14px;"></div>
+      <div class="images" id="detailImages" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="detail-section" id="detailSensesWrap" style="display:none;">
+      <h3>五感メモ</h3>
+      <div id="detailSenses" style="white-space:pre-wrap; font-size:14px;"></div>
+    </div>
+
+    <div class="detail-section">
+      <h3>書き足し（タイムライン）</h3>
+      <textarea id="addNoteText" placeholder="ふと「こうしたい！」と浮かんだことを気軽に書き足そう"></textarea>
+      <div class="images" id="newNoteImages"></div>
+      <input type="file" id="noteImageInput" accept="image/*" multiple style="display:none">
+      <div class="spacer"></div>
+      <div class="row">
+        <button class="btn small" onclick="document.getElementById('noteImageInput').click()">画像を追加</button>
+        <button class="btn small gold" onclick="addNote()">書き足す</button>
+      </div>
+      <hr class="hr">
+      <div id="noteTimeline"></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="row between">
+        <div>
+          <h3 style="margin:0;">叶った！</h3>
+          <p class="note" style="margin-top:4px;">叶ったオーダーは、ダッシュボードに積み重なります ✨</p>
+        </div>
+        <div class="row">
+          <button class="btn sage small" onclick="markFulfilled()">叶った！</button>
+          <button class="btn danger small" onclick="deleteOrder()">削除</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ありがとう新規 -->
+  <section id="page-gratitudeEdit" class="page">
+    <button class="back" onclick="goBack()">← もどる</button>
+    <h2>ありがとうを書く</h2>
+
+    <div class="card">
+      <label>タイトル</label>
+      <input type="text" id="gratitudeTitle" placeholder="例：今朝の珈琲、最高だった">
+
+      <label>本文</label>
+      <textarea id="gratitudeContent" placeholder="どんな出来事？何に心が動いた？ ありがとうの気持ちを言葉に。" rows="6"></textarea>
+
+      <label>写真</label>
+      <div class="images" id="gratitudeImages"></div>
+      <input type="file" id="gratitudeImageInput" accept="image/*" multiple style="display:none">
+
+      <div class="spacer"></div>
+      <div class="row">
+        <button class="btn gold" onclick="saveGratitude()">保存する</button>
+        <button class="btn ghost" onclick="goBack()">キャンセル</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ありがとう詳細 -->
+  <section id="page-gratitudeDetail" class="page">
+    <button class="back" onclick="goBack()">← もどる</button>
+    <h1 class="detail-title" id="gDetailTitle"></h1>
+    <div class="detail-date" id="gDetailDate"></div>
+    <div class="detail-section">
+      <div class="images" id="gDetailImages" style="margin-bottom:12px;"></div>
+      <div id="gDetailContent" style="white-space:pre-wrap; font-size:14px; line-height:1.9;"></div>
+    </div>
+    <div class="row">
+      <button class="btn danger small" onclick="deleteGratitude()">削除</button>
+    </div>
+  </section>
+
+  <!-- 叶ったオーダー詳細 -->
+  <section id="page-fulfilledDetail" class="page">
+    <button class="back" onclick="goBack()">← もどる</button>
+    <h1 class="detail-title" id="fDetailTitle"></h1>
+    <div class="detail-date" id="fDetailDate"></div>
+    <div class="detail-section">
+      <h3>願いの中身</h3>
+      <div id="fDetailDesc" style="white-space:pre-wrap; font-size:14px;"></div>
+      <div class="images" id="fDetailImages" style="margin-top:12px;"></div>
+    </div>
+    <div class="detail-section" id="fDetailSensesWrap" style="display:none;">
+      <h3>五感メモ</h3>
+      <div id="fDetailSenses" style="white-space:pre-wrap; font-size:14px;"></div>
+    </div>
+    <div class="detail-section" id="fDetailTimelineWrap" style="display:none;">
+      <h3>書き足し</h3>
+      <div id="fDetailTimeline"></div>
+    </div>
+    <div class="row">
+      <button class="btn ghost small" onclick="restoreOrder()">オーダーに戻す</button>
+      <button class="btn danger small" onclick="deleteFulfilled()">削除</button>
+    </div>
+  </section>
+</main>
+
+<button class="fab" id="fab" onclick="openNewOrder()" title="新しいオーダー">＋</button>
+
+<!-- Lightbox -->
+<div class="modal" id="modal" onclick="this.classList.remove('show')">
+  <img id="modalImg" src="" alt="">
+</div>
+
+<script>
+/* ============ Storage ============ */
+const STORE_KEY = 'orderNoteData_v1';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) { console.error(e); }
+  return { orders: [], fulfilled: [], gratitude: [], firstDate: today() };
+}
+function saveData() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+  catch(e) {
+    alert('保存できませんでした。画像の容量が大きすぎるかもしれません。\n' + e.message);
+  }
+}
+function today() { return new Date().toISOString().slice(0,10); }
+function nowISO() { return new Date().toISOString(); }
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${fmtDate(iso)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+let data = loadData();
+if (!data.firstDate) { data.firstDate = today(); saveData(); }
+
+/* ============ Navigation ============ */
+let currentPage = 'home';
+let navStack = ['home'];
+
+function goTo(pageId, push = true) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === pageId));
+  currentPage = pageId;
+  if (push) navStack.push(pageId);
+  window.scrollTo(0, 0);
+  // FAB visible only on orders/home
+  document.getElementById('fab').style.display = (pageId === 'orders' || pageId === 'home') ? 'block' : 'none';
+}
+function goBack() {
+  navStack.pop();
+  const prev = navStack[navStack.length - 1] || 'home';
+  goTo(prev, false);
+}
+
+document.querySelectorAll('nav button').forEach(b => {
+  b.addEventListener('click', () => {
+    navStack = [b.dataset.tab];
+    goTo(b.dataset.tab, false);
+    render();
+  });
+});
+
+/* ============ Image handling ============ */
+function readImages(input, cb) {
+  const files = Array.from(input.files || []);
+  let remaining = files.length;
+  if (!remaining) return;
+  const out = [];
+  files.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      // Compress via canvas before storing
+      const img = new Image();
+      img.onload = () => {
+        const max = 1000;
+        let w = img.width, h = img.height;
+        if (w > max || h > max) {
+          if (w > h) { h = h * max / w; w = max; }
+          else { w = w * max / h; h = max; }
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        out.push(c.toDataURL('image/jpeg', 0.75));
+        if (--remaining === 0) cb(out);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(f);
+  });
+  input.value = '';
+}
+
+function showImage(src) {
+  document.getElementById('modalImg').src = src;
+  document.getElementById('modal').classList.add('show');
+}
+
+/* ============ Tree (grows with fulfilled count) ============ */
+const TREE_STAGES = [
+  { min: 0,  max: 0,  name: '種',         emoji: '🌰', desc: 'これから、あなたの木がここで育ちます' },
+  { min: 1,  max: 2,  name: '芽',         emoji: '🌱', desc: '最初の願いが、芽吹いた' },
+  { min: 3,  max: 5,  name: '双葉',       emoji: '🌿', desc: 'すくすく葉を広げてる' },
+  { min: 6,  max: 10, name: '若木',       emoji: '🪴', desc: '根を張りはじめた' },
+  { min: 11, max: 20, name: '小さな木',   emoji: '🌳', desc: 'しっかり大きくなってきた' },
+  { min: 21, max: 35, name: '実のなる木', emoji: '🍑', desc: '初めての実が、ふくらんできた' },
+  { min: 36, max: 60, name: '大きな木',   emoji: '🌳', desc: 'たくさんの実が、たわわに' },
+  { min: 61, max: Infinity, name: '大樹', emoji: '✨', desc: 'あなたの森が、広がっている' }
+];
+
+function getTreeStage(count) {
+  return TREE_STAGES.find(s => count >= s.min && count <= s.max);
+}
+
+function getLeafColors(count) {
+  // returns [main, light, shadow]
+  if (count <= 2)  return ['#c7dd9a', '#dbe9b3', '#a8c47a'];   // light yellow-green
+  if (count <= 5)  return ['#a8c879', '#c0dc97', '#8caf5e'];   // fresh green
+  if (count <= 10) return ['#88b86a', '#a7cc88', '#6f9e54'];   // medium green
+  if (count <= 20) return ['#6ea655', '#8ec072', '#588843'];   // deeper green
+  if (count <= 35) return ['#5a9c50', '#7cb96d', '#477e3d'];   // rich green
+  if (count <= 60) return ['#4f924a', '#74b069', '#3d7437'];   // mature green with warm tone
+  return ['#4a8a45', '#6fa962', '#386f33'];                    // deep mature
+}
+
+function buildTreeSVG(count) {
+  const cx = 100;
+  const baseY = 230;
+
+  // Trunk geometry
+  const trunkHeight = count === 0 ? 0 : Math.min(15 + Math.sqrt(count) * 16, 145);
+  const trunkTop = baseY - trunkHeight;
+  const trunkBase = count === 0 ? 0 : Math.min(3 + Math.sqrt(count) * 1.4, 14);
+  const trunkApex = Math.max(trunkBase * 0.55, 2);
+
+  const ground = `
+    <ellipse cx="${cx}" cy="${baseY + 6}" rx="78" ry="7" fill="#d4b896" opacity="0.30"/>
+    <ellipse cx="${cx}" cy="${baseY + 3}" rx="60" ry="4" fill="#c5a47a" opacity="0.45"/>
+  `;
+
+  // Trunk shape (slightly curved trapezoid)
+  let trunk = '';
+  if (count > 0) {
+    trunk = `
+      <path d="M ${cx - trunkBase} ${baseY}
+               Q ${cx - trunkApex * 1.1} ${(baseY + trunkTop) / 2}, ${cx - trunkApex} ${trunkTop}
+               L ${cx + trunkApex} ${trunkTop}
+               Q ${cx + trunkApex * 1.1} ${(baseY + trunkTop) / 2}, ${cx + trunkBase} ${baseY} Z"
+            fill="#8b6a4a"/>
+      <path d="M ${cx - trunkApex * 0.5} ${trunkTop + 4}
+               L ${cx + trunkApex * 0.5} ${trunkTop + 4}
+               L ${cx + trunkBase * 0.5} ${baseY - 2}
+               L ${cx - trunkBase * 0.5} ${baseY - 2} Z"
+            fill="#a18260" opacity="0.5"/>
+    `;
+  }
+
+  // Branches
+  let branches = '';
+  const branchColor = '#7d5c3f';
+  if (count >= 6) {
+    const by = trunkTop + trunkHeight * 0.42;
+    const bl = Math.min(12 + Math.sqrt(count) * 4, 42);
+    const bw = Math.max(trunkBase * 0.45, 2);
+    branches += `<path d="M ${cx} ${by} Q ${cx - bl * 0.6} ${by - bl * 0.1}, ${cx - bl} ${by - bl * 0.35}" stroke="${branchColor}" stroke-width="${bw}" stroke-linecap="round" fill="none"/>`;
+    branches += `<path d="M ${cx} ${by} Q ${cx + bl * 0.6} ${by - bl * 0.1}, ${cx + bl} ${by - bl * 0.35}" stroke="${branchColor}" stroke-width="${bw}" stroke-linecap="round" fill="none"/>`;
+  }
+  if (count >= 15) {
+    const by = trunkTop + trunkHeight * 0.65;
+    const bl = Math.min(10 + Math.sqrt(count) * 3, 35);
+    const bw = Math.max(trunkBase * 0.35, 1.5);
+    branches += `<path d="M ${cx} ${by} Q ${cx - bl * 0.6} ${by - bl * 0.15}, ${cx - bl} ${by - bl * 0.3}" stroke="${branchColor}" stroke-width="${bw}" stroke-linecap="round" fill="none"/>`;
+    branches += `<path d="M ${cx} ${by} Q ${cx + bl * 0.6} ${by - bl * 0.15}, ${cx + bl} ${by - bl * 0.3}" stroke="${branchColor}" stroke-width="${bw}" stroke-linecap="round" fill="none"/>`;
+  }
+
+  // Leaves / canopy
+  let leaves = '';
+  let canopySize = 0;
+  let canopyCenterY = trunkTop;
+
+  if (count === 0) {
+    // Seed in soil
+    leaves = `
+      <ellipse cx="${cx}" cy="${baseY - 3}" rx="9" ry="6" fill="#9a7b56"/>
+      <ellipse cx="${cx - 2}" cy="${baseY - 5}" rx="3" ry="2" fill="#b89571" opacity="0.7"/>
+    `;
+  } else if (count <= 2) {
+    // Tiny sprout - 2 round cotyledon leaves
+    const [c1, c2] = getLeafColors(count);
+    const leafY = trunkTop - 1;
+    leaves = `
+      <ellipse cx="${cx - 7}" cy="${leafY}" rx="8" ry="5" fill="${c1}" transform="rotate(-30 ${cx - 7} ${leafY})"/>
+      <ellipse cx="${cx + 7}" cy="${leafY}" rx="8" ry="5" fill="${c1}" transform="rotate(30 ${cx + 7} ${leafY})"/>
+      <ellipse cx="${cx - 6}" cy="${leafY - 1}" rx="4" ry="2.5" fill="${c2}" transform="rotate(-30 ${cx - 6} ${leafY - 1})" opacity="0.7"/>
+      <ellipse cx="${cx + 6}" cy="${leafY - 1}" rx="4" ry="2.5" fill="${c2}" transform="rotate(30 ${cx + 6} ${leafY - 1})" opacity="0.7"/>
+    `;
+  } else if (count <= 5) {
+    // Small plant: a few leaves around top
+    const [c1, c2] = getLeafColors(count);
+    canopySize = 18 + count * 2;
+    canopyCenterY = trunkTop - canopySize * 0.3;
+    leaves = canopyClusterSmall(cx, canopyCenterY, canopySize, c1, c2);
+  } else {
+    // Full canopy
+    const [c1, c2] = getLeafColors(count);
+    canopySize = Math.min(20 + Math.sqrt(count) * 8, 78);
+    canopyCenterY = trunkTop - canopySize * 0.35;
+    leaves = canopyCluster(cx, canopyCenterY, canopySize, c1, c2);
+  }
+
+  // Fruits (start appearing around 12)
+  let fruits = '';
+  if (count >= 12 && canopySize > 0) {
+    const numFruits = Math.min(Math.floor((count - 11) / 1.5), 22);
+    fruits = generateFruits(cx, canopyCenterY, canopySize, numFruits, count);
+  }
+
+  return `
+    <svg viewBox="0 0 200 240" class="tree-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+      ${ground}
+      ${trunk}
+      ${branches}
+      ${leaves}
+      ${fruits}
+    </svg>
+  `;
+}
+
+function canopyClusterSmall(cx, cy, size, c1, c2) {
+  const bulbs = [
+    { dx: 0,    dy: 0.2,  r: 0.85, c: c1 },
+    { dx: -0.5, dy: 0.1,  r: 0.55, c: c1 },
+    { dx: 0.5,  dy: 0.1,  r: 0.55, c: c1 },
+    { dx: -0.2, dy: -0.4, r: 0.55, c: c2 },
+    { dx: 0.35, dy: -0.3, r: 0.5,  c: c2 },
+  ];
+  return bulbs.map(b => `<circle cx="${cx + b.dx * size}" cy="${cy + b.dy * size}" r="${b.r * size}" fill="${b.c}"/>`).join('');
+}
+
+function canopyCluster(cx, cy, size, c1, c2) {
+  // Layered canopy with depth — base layer (main color) + highlight layer (lighter)
+  const base = [
+    { dx: 0,     dy: 0.4,  r: 0.95 },
+    { dx: -0.65, dy: 0.25, r: 0.7  },
+    { dx: 0.65,  dy: 0.25, r: 0.7  },
+    { dx: -0.45, dy: -0.25,r: 0.7  },
+    { dx: 0.45,  dy: -0.25,r: 0.7  },
+    { dx: 0,     dy: -0.55,r: 0.65 },
+    { dx: -0.85, dy: -0.05,r: 0.5  },
+    { dx: 0.85,  dy: -0.05,r: 0.5  },
+  ];
+  const highlight = [
+    { dx: -0.15, dy: -0.1, r: 0.5  },
+    { dx: 0.35,  dy: -0.05,r: 0.45 },
+    { dx: 0.1,   dy: -0.45,r: 0.4  },
+    { dx: -0.5,  dy: 0.05, r: 0.35 },
+  ];
+  let s = '';
+  s += base.map(b => `<circle cx="${cx + b.dx * size}" cy="${cy + b.dy * size}" r="${b.r * size}" fill="${c1}"/>`).join('');
+  s += highlight.map(b => `<circle cx="${cx + b.dx * size}" cy="${cy + b.dy * size}" r="${b.r * size}" fill="${c2}" opacity="0.85"/>`).join('');
+  return s;
+}
+
+function generateFruits(cx, cy, size, n, seed) {
+  if (n <= 0) return '';
+  const fruits = [];
+  // Deterministic pseudo-random scatter
+  let s = seed * 9301 + 49297;
+  const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+  let placed = 0, attempts = 0;
+  while (placed < n && attempts < n * 4) {
+    attempts++;
+    const r = size * (0.45 + rnd() * 0.45);
+    const angle = rnd() * Math.PI * 2;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r * 0.85;
+    // Stay within rough canopy bounds
+    const dx = (x - cx) / size, dy = (y - cy) / size;
+    if (dx * dx + dy * dy * 1.3 > 0.95) continue;
+    fruits.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#e88060"/>`);
+    fruits.push(`<circle cx="${(x - 0.8).toFixed(1)}" cy="${(y - 0.8).toFixed(1)}" r="0.9" fill="#ffd8c0" opacity="0.8"/>`);
+    placed++;
+  }
+  return fruits.join('');
+}
+
+function celebrateTree() {
+  const hero = document.getElementById('hero');
+  if (!hero) return;
+  const symbols = ['✨', '🌟', '💛', '✦', '🌸'];
+  for (let i = 0; i < 8; i++) {
+    const el = document.createElement('div');
+    el.className = 'sparkle';
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    el.style.left = (30 + Math.random() * 70) + '%';
+    el.style.top = (40 + Math.random() * 40) + '%';
+    el.style.animationDelay = (i * 0.08) + 's';
+    hero.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  }
+}
+
+/* ============ Render: Home ============ */
+function render() {
+  // Counts
+  document.getElementById('fulfilledCount').textContent = data.fulfilled.length;
+  document.getElementById('activeCount').textContent = data.orders.length;
+  document.getElementById('gratitudeCount').textContent = data.gratitude.length;
+  const days = Math.max(1, Math.floor((new Date() - new Date(data.firstDate)) / 86400000) + 1);
+  document.getElementById('streakDays').textContent = days;
+
+  // Tree
+  const f = data.fulfilled.length;
+  document.getElementById('treeArt').innerHTML = buildTreeSVG(f);
+  const stage = getTreeStage(f);
+  document.getElementById('treeStageLabel').textContent = `${stage.emoji} ${stage.name}`;
+  document.getElementById('stageDesc').textContent = stage.desc;
+
+  // Next stage progress
+  const nextStageEl = document.getElementById('nextStage');
+  if (stage.max === Infinity) {
+    nextStageEl.innerHTML = `<div style="color: var(--gold);">あなたの木は、もう森になりました ✨</div>`;
+  } else {
+    const remaining = stage.max + 1 - f;
+    const nextStage = TREE_STAGES.find(s => s.min === stage.max + 1);
+    const stageStart = stage.min;
+    const stageEnd = stage.max + 1;
+    const progress = ((f - stageStart) / (stageEnd - stageStart)) * 100;
+    nextStageEl.innerHTML = `
+      あと <strong style="color: var(--primary-dark);">${remaining}</strong> 個で「${nextStage.emoji} ${nextStage.name}」へ
+      <div class="bar"><div class="fill" style="width: ${progress}%;"></div></div>
+    `;
+  }
+
+  // Hero message
+  const msgs = [
+    'わたしには叶える力がある。<br>宇宙は、いつもわたしの味方。',
+    'どうせ叶うから、わくわくしながら待っていよう ☕',
+    'いい気分でいる ─ それが、いちばんの近道。',
+    `${f}個も叶えてきたんだから、次もきっと大丈夫。`,
+    'タイムラグも、宇宙からのプレゼントの包み紙。'
+  ];
+  document.getElementById('heroMsg').innerHTML = f > 0 && Math.random() > 0.5 ? msgs[3] : msgs[Math.floor(Math.random() * 3)];
+
+  // Daily quote
+  const quotes = [
+    '今この瞬間の「いい気分」が、未来をつくる。<br>どうせ叶うから、わくわくしながら待っていよう ☕',
+    '「どうやって叶うか」は、宇宙にお任せ。<br>あなたの仕事は、いい気分でいることだけ。',
+    'すでに持っているものに「ありがとう」を向けると、<br>同じ周波数のものが引き寄せられてくる。',
+    '焦り・執着・不満は、せっかくのオーダーをブロック。<br>「叶ったらいいな」じゃなく「どうせ叶う」で。',
+    '叶っている人を観察しよう。<br>自分の脳みそ以外からヒントを探すのは、大歓迎。'
+  ];
+  const dayIdx = Math.floor(new Date().getTime() / 86400000) % quotes.length;
+  document.getElementById('dailyQuote').innerHTML = quotes[dayIdx];
+
+  // Recent orders
+  const recent = data.orders.slice(-3).reverse();
+  const recentEl = document.getElementById('recentOrders');
+  if (recent.length === 0) {
+    recentEl.innerHTML = `<div class="card"><div class="empty"><div class="icon">🌱</div>まずは、ちいさな願いから書いてみよう</div><div style="text-align:center;"><button class="btn" onclick="openNewOrder()">＋ オーダーする</button></div></div>`;
+  } else {
+    recentEl.innerHTML = recent.map(o => orderCardHTML(o)).join('');
+  }
+
+  // Recent gratitude
+  const rg = data.gratitude.slice(-2).reverse();
+  const rgEl = document.getElementById('recentGratitude');
+  if (rg.length === 0) {
+    rgEl.innerHTML = `<div class="card"><div class="empty"><div class="icon">💛</div>「ありがとう」を見つけたら、ここに残そう</div></div>`;
+  } else {
+    rgEl.innerHTML = rg.map(g => gratitudeCardHTML(g)).join('');
+  }
+
+  // Orders page
+  const orderListEl = document.getElementById('orderList');
+  if (data.orders.length === 0) {
+    orderListEl.innerHTML = `<div class="card"><div class="empty"><div class="icon">✨</div>オーダーは、まだ空っぽ。<br>気軽に、ひとつ書いてみよう。</div></div>`;
+  } else {
+    orderListEl.innerHTML = data.orders.slice().reverse().map(o => orderCardHTML(o)).join('');
+  }
+
+  // Fulfilled page
+  const fEl = document.getElementById('fulfilledList');
+  if (data.fulfilled.length === 0) {
+    fEl.innerHTML = `<div class="card"><div class="empty"><div class="icon">🌟</div>これから、たくさん叶っていくよ。</div></div>`;
+  } else {
+    fEl.innerHTML = data.fulfilled.slice().reverse().map(o => orderCardHTML(o, true)).join('');
+  }
+
+  // Gratitude page
+  const gEl = document.getElementById('gratitudeList');
+  if (data.gratitude.length === 0) {
+    gEl.innerHTML = `<div class="card"><div class="empty"><div class="icon">🌷</div>心が動いた瞬間を、ここに。</div><div style="text-align:center;"><button class="btn gold" onclick="openNewGratitude()">＋ 書いてみる</button></div></div>`;
+  } else {
+    gEl.innerHTML = data.gratitude.slice().reverse().map(g => gratitudeCardHTML(g)).join('');
+  }
+}
+
+function orderCardHTML(o, isFulfilled = false) {
+  const thumb = o.images && o.images.length
+    ? `<img class="order-thumb" src="${o.images[0]}">`
+    : `<div class="order-thumb placeholder">✦</div>`;
+  const action = isFulfilled ? `openFulfilledDetail('${o.id}')` : `openOrderDetail('${o.id}')`;
+  const fulfilledBadge = isFulfilled ? `<span class="badge fulfilled">✓ ${fmtDate(o.fulfilledAt)}</span>` : '';
+  return `
+    <div class="card clickable" onclick="${action}">
+      <div class="order-item">
+        ${thumb}
+        <div class="order-body">
+          <div class="order-title">${escapeHtml(o.title || '（無題）')}</div>
+          <div class="order-desc">${escapeHtml(o.desc || '')}</div>
+          <div class="order-meta">
+            <span>${fmtDate(o.createdAt)}</span>
+            ${o.notes && o.notes.length ? `<span class="badge">＋${o.notes.length}件の書き足し</span>` : ''}
+            ${fulfilledBadge}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function gratitudeCardHTML(g) {
+  const hero = g.images && g.images.length
+    ? `<img class="blog-hero" src="${g.images[0]}">`
+    : `<div class="blog-hero" style="display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--primary-dark);">💛</div>`;
+  return `
+    <div class="blog-card" onclick="openGratitudeDetail('${g.id}')">
+      ${hero}
+      <div class="blog-body">
+        <div class="blog-title">${escapeHtml(g.title || '（無題）')}</div>
+        <div class="blog-snippet">${escapeHtml(g.content || '')}</div>
+        <div class="blog-meta">${fmtDate(g.createdAt)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============ Order: new/edit ============ */
+let editingOrderId = null;
+let tempOrderImages = [];
+
+function openNewOrder() {
+  editingOrderId = null;
+  tempOrderImages = [];
+  document.getElementById('orderEditTitle').textContent = '新しいオーダー';
+  document.getElementById('orderTitle').value = '';
+  document.getElementById('orderDesc').value = '';
+  document.getElementById('orderSenses').value = '';
+  renderOrderEditImages();
+  goTo('orderEdit');
+}
+
+function renderOrderEditImages() {
+  const el = document.getElementById('orderImages');
+  el.innerHTML = tempOrderImages.map((src, i) =>
+    `<div class="img-wrap"><img class="img-thumb" src="${src}" onclick="showImage('${src}')"><button class="img-del" onclick="event.stopPropagation(); tempOrderImages.splice(${i},1); renderOrderEditImages();">×</button></div>`
+  ).join('') +
+  `<div class="img-add" onclick="document.getElementById('orderImageInput').click()">＋</div>`;
+}
+
+document.getElementById('orderImageInput').addEventListener('change', e => {
+  readImages(e.target, imgs => {
+    tempOrderImages = tempOrderImages.concat(imgs);
+    renderOrderEditImages();
+  });
+});
+
+function addSense(text) {
+  const ta = document.getElementById('orderSenses');
+  ta.value = (ta.value ? ta.value + '\n' : '') + text;
+}
+
+function saveOrder() {
+  const title = document.getElementById('orderTitle').value.trim();
+  const desc = document.getElementById('orderDesc').value.trim();
+  const senses = document.getElementById('orderSenses').value.trim();
+  if (!title && !desc) { alert('タイトルか中身を、少しだけでも書いてみよう'); return; }
+
+  if (editingOrderId) {
+    const o = data.orders.find(x => x.id === editingOrderId);
+    if (o) {
+      o.title = title; o.desc = desc; o.senses = senses; o.images = tempOrderImages;
+    }
+  } else {
+    data.orders.push({
+      id: uid(),
+      title, desc, senses,
+      images: tempOrderImages,
+      notes: [],
+      createdAt: nowISO()
+    });
+  }
+  saveData();
+  render();
+  goBack();
+}
+
+/* ============ Order detail ============ */
+let currentDetailId = null;
+let tempNoteImages = [];
+
+function openOrderDetail(id) {
+  currentDetailId = id;
+  tempNoteImages = [];
+  const o = data.orders.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('detailTitle').textContent = o.title || '（無題）';
+  document.getElementById('detailDate').textContent = 'オーダー日: ' + fmtDate(o.createdAt);
+  document.getElementById('detailDesc').textContent = o.desc || '';
+  document.getElementById('detailImages').innerHTML = (o.images || []).map(src =>
+    `<img class="img-thumb" src="${src}" onclick="showImage('${src}')">`
+  ).join('');
+  if (o.senses) {
+    document.getElementById('detailSensesWrap').style.display = '';
+    document.getElementById('detailSenses').textContent = o.senses;
+  } else {
+    document.getElementById('detailSensesWrap').style.display = 'none';
+  }
+  renderNoteTimeline();
+  renderNewNoteImages();
+  document.getElementById('addNoteText').value = '';
+  goTo('orderDetail');
+}
+
+function renderNoteTimeline() {
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o) return;
+  const el = document.getElementById('noteTimeline');
+  const notes = (o.notes || []).slice().reverse();
+  if (notes.length === 0) {
+    el.innerHTML = `<p class="note">まだ何も書き足されていません。気が向いたら、思いついたことを足してね。</p>`;
+    return;
+  }
+  el.innerHTML = notes.map((n, idx) => {
+    const realIdx = o.notes.length - 1 - idx;
+    const imgs = (n.images || []).map(src => `<img class="img-thumb" src="${src}" onclick="showImage('${src}')">`).join('');
+    return `
+      <div class="timeline-item">
+        <div class="timeline-date">${fmtDateTime(n.createdAt)}
+          <button class="btn danger small" style="float:right; padding:2px 8px; font-size:10px;" onclick="deleteNote(${realIdx})">削除</button>
+        </div>
+        <div class="timeline-content">${escapeHtml(n.text || '')}</div>
+        ${imgs ? `<div class="images" style="margin-top:8px;">${imgs}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderNewNoteImages() {
+  const el = document.getElementById('newNoteImages');
+  el.innerHTML = tempNoteImages.map((src, i) =>
+    `<div class="img-wrap"><img class="img-thumb" src="${src}"><button class="img-del" onclick="tempNoteImages.splice(${i},1); renderNewNoteImages();">×</button></div>`
+  ).join('');
+}
+
+document.getElementById('noteImageInput').addEventListener('change', e => {
+  readImages(e.target, imgs => {
+    tempNoteImages = tempNoteImages.concat(imgs);
+    renderNewNoteImages();
+  });
+});
+
+function addNote() {
+  const text = document.getElementById('addNoteText').value.trim();
+  if (!text && tempNoteImages.length === 0) { alert('書き足したいことを入れてね'); return; }
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o) return;
+  o.notes = o.notes || [];
+  o.notes.push({ text, images: tempNoteImages, createdAt: nowISO() });
+  document.getElementById('addNoteText').value = '';
+  tempNoteImages = [];
+  saveData();
+  renderNoteTimeline();
+  renderNewNoteImages();
+}
+
+function deleteNote(idx) {
+  if (!confirm('この書き足しを削除しますか？')) return;
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o) return;
+  o.notes.splice(idx, 1);
+  saveData();
+  renderNoteTimeline();
+}
+
+function markFulfilled() {
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o) return;
+  if (!confirm('「' + (o.title || 'このオーダー') + '」が叶ったとして記録しますか？\n（オーダー一覧から消えて、叶ったオーダーに移動します）')) return;
+  o.fulfilledAt = nowISO();
+  data.fulfilled.push(o);
+  data.orders = data.orders.filter(x => x.id !== o.id);
+  saveData();
+  // jump to home so the user can see the tree grow
+  navStack = ['home'];
+  goTo('home', false);
+  render();
+  // celebration
+  setTimeout(() => celebrateTree(), 200);
+  const newStage = getTreeStage(data.fulfilled.length);
+  const prevStage = getTreeStage(data.fulfilled.length - 1);
+  setTimeout(() => {
+    if (newStage.name !== prevStage.name) {
+      alert(`🎉 叶ったね！\nあなたの木が「${newStage.emoji} ${newStage.name}」に育ちました。\n\n${newStage.desc}`);
+    } else {
+      alert('🎉 叶ったね！\nあなたには、叶える力があります。');
+    }
+  }, 400);
+}
+
+function deleteOrder() {
+  if (!confirm('このオーダーを削除しますか？（戻せません）')) return;
+  data.orders = data.orders.filter(x => x.id !== currentDetailId);
+  saveData();
+  render();
+  goBack();
+}
+
+/* ============ Fulfilled detail ============ */
+function openFulfilledDetail(id) {
+  currentDetailId = id;
+  const o = data.fulfilled.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('fDetailTitle').textContent = o.title || '（無題）';
+  document.getElementById('fDetailDate').textContent = `オーダー日: ${fmtDate(o.createdAt)} ／ 叶った日: ${fmtDate(o.fulfilledAt)}`;
+  document.getElementById('fDetailDesc').textContent = o.desc || '';
+  document.getElementById('fDetailImages').innerHTML = (o.images || []).map(src =>
+    `<img class="img-thumb" src="${src}" onclick="showImage('${src}')">`
+  ).join('');
+  if (o.senses) {
+    document.getElementById('fDetailSensesWrap').style.display = '';
+    document.getElementById('fDetailSenses').textContent = o.senses;
+  } else {
+    document.getElementById('fDetailSensesWrap').style.display = 'none';
+  }
+  if (o.notes && o.notes.length) {
+    document.getElementById('fDetailTimelineWrap').style.display = '';
+    document.getElementById('fDetailTimeline').innerHTML = o.notes.slice().reverse().map(n => {
+      const imgs = (n.images || []).map(src => `<img class="img-thumb" src="${src}" onclick="showImage('${src}')">`).join('');
+      return `<div class="timeline-item">
+        <div class="timeline-date">${fmtDateTime(n.createdAt)}</div>
+        <div class="timeline-content">${escapeHtml(n.text || '')}</div>
+        ${imgs ? `<div class="images" style="margin-top:8px;">${imgs}</div>` : ''}
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('fDetailTimelineWrap').style.display = 'none';
+  }
+  goTo('fulfilledDetail');
+}
+
+function restoreOrder() {
+  if (!confirm('このオーダーをオーダー中に戻しますか？')) return;
+  const o = data.fulfilled.find(x => x.id === currentDetailId);
+  if (!o) return;
+  delete o.fulfilledAt;
+  data.orders.push(o);
+  data.fulfilled = data.fulfilled.filter(x => x.id !== currentDetailId);
+  saveData();
+  render();
+  goBack();
+}
+
+function deleteFulfilled() {
+  if (!confirm('この叶ったオーダーを削除しますか？')) return;
+  data.fulfilled = data.fulfilled.filter(x => x.id !== currentDetailId);
+  saveData();
+  render();
+  goBack();
+}
+
+/* ============ Gratitude ============ */
+let editingGratitudeId = null;
+let tempGratitudeImages = [];
+
+function openNewGratitude() {
+  editingGratitudeId = null;
+  tempGratitudeImages = [];
+  document.getElementById('gratitudeTitle').value = '';
+  document.getElementById('gratitudeContent').value = '';
+  renderGratitudeEditImages();
+  goTo('gratitudeEdit');
+}
+
+function renderGratitudeEditImages() {
+  const el = document.getElementById('gratitudeImages');
+  el.innerHTML = tempGratitudeImages.map((src, i) =>
+    `<div class="img-wrap"><img class="img-thumb" src="${src}" onclick="showImage('${src}')"><button class="img-del" onclick="event.stopPropagation(); tempGratitudeImages.splice(${i},1); renderGratitudeEditImages();">×</button></div>`
+  ).join('') +
+  `<div class="img-add" onclick="document.getElementById('gratitudeImageInput').click()">＋</div>`;
+}
+
+document.getElementById('gratitudeImageInput').addEventListener('change', e => {
+  readImages(e.target, imgs => {
+    tempGratitudeImages = tempGratitudeImages.concat(imgs);
+    renderGratitudeEditImages();
+  });
+});
+
+function saveGratitude() {
+  const title = document.getElementById('gratitudeTitle').value.trim();
+  const content = document.getElementById('gratitudeContent').value.trim();
+  if (!title && !content) { alert('タイトルか本文を、少しだけでも書いてみよう'); return; }
+  data.gratitude.push({
+    id: uid(),
+    title, content,
+    images: tempGratitudeImages,
+    createdAt: nowISO()
+  });
+  saveData();
+  render();
+  goBack();
+}
+
+function openGratitudeDetail(id) {
+  currentDetailId = id;
+  const g = data.gratitude.find(x => x.id === id);
+  if (!g) return;
+  document.getElementById('gDetailTitle').textContent = g.title || '（無題）';
+  document.getElementById('gDetailDate').textContent = fmtDate(g.createdAt);
+  document.getElementById('gDetailContent').textContent = g.content || '';
+  document.getElementById('gDetailImages').innerHTML = (g.images || []).map(src =>
+    `<img class="img-thumb large" src="${src}" onclick="showImage('${src}')">`
+  ).join('');
+  goTo('gratitudeDetail');
+}
+
+function deleteGratitude() {
+  if (!confirm('このありがとうを削除しますか？')) return;
+  data.gratitude = data.gratitude.filter(x => x.id !== currentDetailId);
+  saveData();
+  render();
+  goBack();
+}
+
+/* ============ Init ============ */
+render();
+</script>
+
+</body>
+</html>
