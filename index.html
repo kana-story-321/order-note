@@ -595,6 +595,123 @@
     margin-left: 6px;
   }
 
+  /* Detail page editable title */
+  .detail-title-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    padding: 8px 0 4px;
+    margin: 8px 0 4px;
+    font-family: inherit;
+    border-bottom: 2px dashed transparent;
+    transition: border-color 0.2s;
+  }
+  .detail-title-input:hover { border-bottom-color: var(--border-soft); }
+  .detail-title-input:focus {
+    outline: none;
+    border-bottom-color: var(--primary);
+  }
+
+  /* Main image preview */
+  .detail-main-image {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid var(--border-soft);
+    margin-top: 6px;
+    cursor: pointer;
+    background: var(--bg-soft);
+  }
+
+  /* Image gallery (with reorder controls) */
+  .image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .gallery-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid var(--border-soft);
+    background: var(--bg-soft);
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .gallery-item.is-main {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(200, 153, 104, 0.25);
+  }
+  .gallery-img {
+    flex: 1;
+    width: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    min-height: 0;
+  }
+  .main-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: var(--gold);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .gallery-del {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid var(--border);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 13px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    color: #b86c5a;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .gallery-del:hover { background: #fbece7; }
+  .gallery-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px;
+    background: rgba(255, 250, 243, 0.95);
+    backdrop-filter: blur(4px);
+    border-top: 1px solid var(--border-soft);
+  }
+  .gallery-actions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 6px;
+    color: var(--text-soft);
+    border-radius: 6px;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .gallery-actions button:hover { background: var(--bg-soft); color: var(--primary-dark); }
+  .gallery-actions button:disabled { opacity: 0.3; cursor: default; }
+  .gallery-actions .star { color: var(--gold); font-size: 16px; }
+  .gallery-actions .star.active { color: var(--gold); }
+  .gallery-actions .star.inactive { color: var(--text-muted); }
+
   /* Login overlay */
   .login-overlay {
     position: fixed;
@@ -920,13 +1037,6 @@
       <hr class="hr">
       <label>五感メモ（書ける時だけでOK）</label>
       <textarea id="orderSenses" placeholder="どんな匂い？どんな温かさ？どんな音？どんな心地よさ？" rows="3"></textarea>
-      <div class="sense-tags">
-        <span class="sense-tag" onclick="addSense('☀️ 朝の光の中で')">☀️ 朝の光</span>
-        <span class="sense-tag" onclick="addSense('☕ 温かい飲み物の香り')">☕ 香り</span>
-        <span class="sense-tag" onclick="addSense('😊 まわりの笑顔')">😊 笑顔</span>
-        <span class="sense-tag" onclick="addSense('🌊 心地よい風')">🌊 風</span>
-        <span class="sense-tag" onclick="addSense('💛 胸の奥が温かい')">💛 温かさ</span>
-      </div>
 
       <div class="spacer"></div>
       <div class="row">
@@ -939,18 +1049,27 @@
   <!-- オーダー詳細 -->
   <section id="page-orderDetail" class="page">
     <button class="back" onclick="goBack()">← もどる</button>
-    <h1 class="detail-title" id="detailTitle"></h1>
+    <input type="text" id="detailTitleInput" class="detail-title-input" placeholder="（無題）">
     <div class="detail-date" id="detailDate"></div>
 
     <div class="detail-section">
-      <h3>願いの中身</h3>
-      <div id="detailDesc" style="white-space:pre-wrap; font-size:14px;"></div>
-      <div class="images" id="detailImages" style="margin-top:12px;"></div>
-    </div>
+      <label>願いの中身</label>
+      <textarea id="detailDescInput" placeholder="まずはざっくりで大丈夫。あとから書き足していけます。"></textarea>
 
-    <div class="detail-section" id="detailSensesWrap" style="display:none;">
-      <h3>五感メモ</h3>
-      <div id="detailSenses" style="white-space:pre-wrap; font-size:14px;"></div>
+      <div id="detailMainImageWrap" style="display:none;">
+        <label style="margin-top:14px;">メイン画像</label>
+        <img class="detail-main-image" id="detailMainImage" alt="メイン画像">
+      </div>
+
+      <label style="margin-top:14px;">イメージ画像（タップで拡大／⭐でメインに）</label>
+      <div class="image-gallery" id="detailImageGallery"></div>
+      <input type="file" id="detailImageInput" accept="image/*" multiple style="display:none">
+      <div class="row" style="margin-top:8px;">
+        <button class="btn small ghost" onclick="document.getElementById('detailImageInput').click()">＋ 画像を追加</button>
+      </div>
+
+      <label style="margin-top:14px;">五感メモ</label>
+      <textarea id="detailSensesInput" placeholder="どんな匂い？どんな温かさ？どんな音？どんな心地よさ？" rows="3"></textarea>
     </div>
 
     <div class="detail-section">
@@ -1676,22 +1795,88 @@ function openOrderDetail(id) {
   tempNoteImages = [];
   const o = data.orders.find(x => x.id === id);
   if (!o) return;
-  document.getElementById('detailTitle').textContent = o.title || '（無題）';
+  document.getElementById('detailTitleInput').value = o.title || '';
   document.getElementById('detailDate').textContent = 'オーダー日: ' + fmtDate(o.createdAt);
-  document.getElementById('detailDesc').textContent = o.desc || '';
-  document.getElementById('detailImages').innerHTML = (o.images || []).map(src =>
-    `<img class="img-thumb" src="${src}" onclick="showImage('${src}')">`
-  ).join('');
-  if (o.senses) {
-    document.getElementById('detailSensesWrap').style.display = '';
-    document.getElementById('detailSenses').textContent = o.senses;
-  } else {
-    document.getElementById('detailSensesWrap').style.display = 'none';
-  }
+  document.getElementById('detailDescInput').value = o.desc || '';
+  document.getElementById('detailSensesInput').value = o.senses || '';
+  renderDetailImageGallery();
   renderNoteTimeline();
   renderNewNoteImages();
   document.getElementById('addNoteText').value = '';
   goTo('orderDetail');
+}
+
+function renderDetailImageGallery() {
+  const o = data.orders.find(x => x.id === currentDetailId);
+  const wrap = document.getElementById('detailMainImageWrap');
+  const mainImg = document.getElementById('detailMainImage');
+  const gallery = document.getElementById('detailImageGallery');
+  if (!o) return;
+  const imgs = o.images || [];
+  if (imgs.length > 0) {
+    wrap.style.display = '';
+    mainImg.src = imgs[0];
+    mainImg.onclick = () => showImage(imgs[0]);
+  } else {
+    wrap.style.display = 'none';
+    mainImg.src = '';
+  }
+  gallery.innerHTML = imgs.map((src, i) => {
+    const isMain = i === 0;
+    return `
+      <div class="gallery-item ${isMain ? 'is-main' : ''}">
+        ${isMain ? '<span class="main-badge">メイン</span>' : ''}
+        <img class="gallery-img" src="${src}" onclick="showImage('${src}')">
+        <button class="gallery-del" onclick="deleteDetailImage(${i})" title="削除">×</button>
+        <div class="gallery-actions">
+          <button onclick="moveDetailImage(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="左へ">←</button>
+          <button class="star ${isMain ? 'active' : 'inactive'}" onclick="setDetailMainImage(${i})" title="メインに設定">${isMain ? '★' : '☆'}</button>
+          <button onclick="moveDetailImage(${i}, 1)" ${i === imgs.length - 1 ? 'disabled' : ''} title="右へ">→</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function saveDetailField(field, value) {
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o) return;
+  if (o[field] === value) return;
+  o[field] = value;
+  await cloudUpsert('orders', o);
+  render();
+}
+
+function setDetailMainImage(idx) {
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o || !o.images || idx === 0 || idx >= o.images.length) return;
+  const [img] = o.images.splice(idx, 1);
+  o.images.unshift(img);
+  cloudUpsert('orders', o);
+  renderDetailImageGallery();
+  render();
+}
+
+function moveDetailImage(idx, dir) {
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o || !o.images) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= o.images.length) return;
+  const [img] = o.images.splice(idx, 1);
+  o.images.splice(newIdx, 0, img);
+  cloudUpsert('orders', o);
+  renderDetailImageGallery();
+  render();
+}
+
+function deleteDetailImage(idx) {
+  if (!confirm('この画像を削除しますか？')) return;
+  const o = data.orders.find(x => x.id === currentDetailId);
+  if (!o || !o.images) return;
+  o.images.splice(idx, 1);
+  cloudUpsert('orders', o);
+  renderDetailImageGallery();
+  render();
 }
 
 function renderNoteTimeline() {
@@ -1731,6 +1916,23 @@ document.getElementById('noteImageInput').addEventListener('change', e => {
     renderNewNoteImages();
   });
 });
+
+// Detail page: image upload directly adds to the order
+document.getElementById('detailImageInput').addEventListener('change', e => {
+  readImages(e.target, imgs => {
+    const o = data.orders.find(x => x.id === currentDetailId);
+    if (!o) return;
+    o.images = (o.images || []).concat(imgs);
+    cloudUpsert('orders', o);
+    renderDetailImageGallery();
+    render();
+  });
+});
+
+// Detail page: auto-save on blur
+document.getElementById('detailTitleInput').addEventListener('blur', e => saveDetailField('title', e.target.value.trim()));
+document.getElementById('detailDescInput').addEventListener('blur', e => saveDetailField('desc', e.target.value.trim()));
+document.getElementById('detailSensesInput').addEventListener('blur', e => saveDetailField('senses', e.target.value.trim()));
 
 function addNote() {
   const text = document.getElementById('addNoteText').value.trim();
@@ -2015,6 +2217,9 @@ window.deleteGratitude = deleteGratitude;
 window.removeOrderImage = (i) => { tempOrderImages.splice(i, 1); renderOrderEditImages(); };
 window.removeNoteImage = (i) => { tempNoteImages.splice(i, 1); renderNewNoteImages(); };
 window.removeGratitudeImage = (i) => { tempGratitudeImages.splice(i, 1); renderGratitudeEditImages(); };
+window.setDetailMainImage = setDetailMainImage;
+window.moveDetailImage = moveDetailImage;
+window.deleteDetailImage = deleteDetailImage;
 </script>
 
 </body>
